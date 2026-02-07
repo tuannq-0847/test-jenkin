@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "BaseMVVM"
 include(":app")
-include(":FastPermissions:fastpermissions")
+//include(":FastPermissions:fastpermissions")
