@@ -9,25 +9,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
-private val defaultTodos = listOf(
-    Todo(1L, "abc", false),
-    Todo(2L, "abc1", false),
-    Todo(3L, "abc2", false),
-    Todo(4L, "abc3", false)
-)
+private val defaultTodos =
+    listOf(
+        Todo(1L, "abc", false),
+        Todo(2L, "abc1", false),
+        Todo(3L, "abc2", false),
+        Todo(4L, "abc3", false),
+    )
 
 class TodoListViewModel(
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-
-    private val _todos = MutableStateFlow(
-        (savedStateHandle[KEY_TODOS] as? List<Todo>) ?: defaultTodos
-    )
+    private val _todos =
+        MutableStateFlow(
+            (savedStateHandle[KEY_TODOS] as? List<Todo>) ?: defaultTodos,
+        )
     val todos: StateFlow<List<Todo>> = _todos.asStateFlow()
 
-    var text = mutableStateOf(
-        savedStateHandle.get<String>(KEY_TEXT) ?: ""
-    )
+    var text =
+        mutableStateOf(
+            savedStateHandle.get<String>(KEY_TEXT) ?: "",
+        )
 
     private fun saveTodos() {
         savedStateHandle[KEY_TODOS] = ArrayList(_todos.value)

@@ -6,7 +6,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.commit
 
 class MainActivity : FragmentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
