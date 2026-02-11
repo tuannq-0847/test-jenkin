@@ -13,11 +13,13 @@ pipeline {
     stages {
         stage('Check Java') {
             steps {
-                sh '''
-                  echo JAVA_HOME=$JAVA_HOME
-                  which java
-                  java -version
-                '''
+                sh 'java -version'
+            }
+        }
+
+        stage('Ktlint Check') {
+            steps {
+                sh './gradlew ktlintCheck'
             }
         }
 
