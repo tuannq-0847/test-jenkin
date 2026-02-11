@@ -1,25 +1,28 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'jdk Android Studio'
+    }
+
     environment {
         ANDROID_HOME = "/Users/karl/Library/Android/sdk"
         PATH = "${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest/bin:${env.PATH}"
-        JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-        PATH="$JAVA_HOME/bin:$PATH"
     }
 
     stages {
         stage('Check Java') {
             steps {
-                sh 'java -version'
-                sh 'echo $JAVA_HOME'
+                sh '''
+                  echo JAVA_HOME=$JAVA_HOME
+                  which java
+                  java -version
+                '''
             }
         }
 
         stage('Build Debug') {
             steps {
-                sh 'echo ANDROID_HOME=$ANDROID_HOME'
-                sh 'ls $ANDROID_HOME/platforms'
                 sh './gradlew clean assembleDebug'
             }
         }
@@ -29,6 +32,5 @@ pipeline {
                 sh './gradlew testDebugUnitTest'
             }
         }
-
     }
 }
