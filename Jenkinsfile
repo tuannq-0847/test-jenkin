@@ -4,6 +4,8 @@ pipeline {
     environment {
         ANDROID_HOME = "/Users/karl/Library/Android/sdk"
         PATH = "${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest/bin:${env.PATH}"
+        JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+        PATH="$JAVA_HOME/bin:$PATH"
     }
 
     stages {
