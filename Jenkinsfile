@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Check Java') {
+            steps {
+                sh 'java -version'
+                sh 'echo $JAVA_HOME'
+            }
+        }
 
         stage('Build Debug') {
             steps {
