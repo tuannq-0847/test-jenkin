@@ -1,20 +1,26 @@
 package com.karleinstein.basemvvm
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.commit
+import androidx.navigation.compose.rememberNavController
+import com.karleinstein.basemvvm.navigation.TodoNavigation
+
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-
-        if (savedInstanceState == null) {
-            supportFragmentManager.commit {
-                replace(R.id.fragment_container, TodoListFragment())
-            }
+        setContent {
+            TodoApp()
         }
+    }
+
+    @Composable
+    fun TodoApp() {
+        val navController = rememberNavController()
+        TodoNavigation(navController = navController)
     }
 }

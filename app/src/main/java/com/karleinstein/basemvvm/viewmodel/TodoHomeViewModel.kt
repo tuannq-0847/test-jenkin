@@ -17,7 +17,7 @@ private val defaultTodos =
         Todo(4L, "abc3", false),
     )
 
-class TodoListViewModel(
+class TodoHomeViewModel(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _todos =
