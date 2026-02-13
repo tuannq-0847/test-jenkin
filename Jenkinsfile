@@ -2,8 +2,15 @@ pipeline {
     agent any
 
     parameters {
-        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
+        gitParameter(
+            name: 'BRANCH',
+            type: 'PT_BRANCH',
+            defaultValue: 'master',
+            branchFilter: 'origin/(.*)',
+            sortMode: 'DESCENDING_SMART'
+        )
     }
+
     tools {
         jdk 'jdk Android Studio'
     }
@@ -14,6 +21,19 @@ pipeline {
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.BRANCH}"]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/tuannq-0847/test-jenkin.git'
+                    ]]
+                ])
+            }
+        }
+
         stage('Check Java') {
             steps {
                 sh 'java -version'
@@ -22,19 +42,19 @@ pipeline {
 
         stage('Ktlint Check') {
             steps {
-                sh './gradlew ktlintCheck'
+                sh './gradlew ktlintCheck --no-daemon'
             }
         }
 
         stage('Build Debug') {
             steps {
-                sh './gradlew clean assembleDebug'
+                sh './gradlew clean assembleDebug --no-daemon'
             }
         }
 
         stage('Run Unit Test') {
             steps {
-                sh './gradlew testDebugUnitTest'
+                sh './gradlew testDebugUnitTest --no-daemon'
             }
         }
     }
