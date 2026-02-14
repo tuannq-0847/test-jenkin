@@ -20,21 +20,27 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.karleinstein.basemvvm.model.Todo
 import com.karleinstein.basemvvm.viewmodel.TodoHomeViewModel
 
 @Composable
-fun HomeScreen(
-    viewModel: TodoHomeViewModel,
+fun HomeScreenContent(
+    todos: List<Todo>,
+    text: String,
+    onTextChange: (String) -> Unit,
+    onToggle: (Todo) -> Unit,
+    onAdd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val todos by viewModel.todos.collectAsState(initial = emptyList())
-    
     Column(
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
+
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
@@ -47,27 +53,64 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(todo.title)
+
                     Checkbox(
                         checked = todo.isDone,
                         onCheckedChange = {
-                            viewModel.updateTodoList(todo.copy(isDone = it))
+                            onToggle(todo.copy(isDone = it))
                         }
                     )
                 }
             }
         }
-        
+
         TextField(
-            value = viewModel.text.value,
-            onValueChange = { viewModel.updateText(it) },
-            modifier = Modifier.fillMaxWidth()
+            value = text,
+            onValueChange = onTextChange,
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
         )
-        
+
         Button(
-            onClick = { viewModel.addTodo(viewModel.text.value) },
-            modifier = Modifier.fillMaxWidth()
+            onClick = onAdd,
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
             Text("Add Todo")
         }
     }
+}
+
+@Composable
+fun HomeScreen(
+    viewModel: TodoHomeViewModel,
+    modifier: Modifier = Modifier
+) {
+    val todos by viewModel.todos.collectAsState(initial = emptyList())
+
+    HomeScreenContent(
+        todos = todos,
+        text = viewModel.text.value,
+        onTextChange = viewModel::updateText,
+        onToggle = viewModel::updateTodoList,
+        onAdd = { viewModel.addTodo(viewModel.text.value) },
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+
+    val fakeTodos = listOf(
+        Todo(1, "Learn Compose", false),
+        Todo(2, "Build Todo App", true),
+        Todo(3, "Master Navigation", false)
+    )
+
+    HomeScreenContent(
+        todos = fakeTodos,
+        text = "New task...",
+        onTextChange = {},
+        onToggle = {},
+        onAdd = {}
+    )
 }
