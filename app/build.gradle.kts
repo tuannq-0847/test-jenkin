@@ -36,6 +36,11 @@ android {
     }
 }
 
+tasks.register<Exec>("format") {
+    workingDir(rootProject.projectDir)
+    commandLine("./gradlew", "ktlintFormat")
+}
+
 dependencies {
 
     val composeBom = platform(libs.androidx.compose.bom)
@@ -59,9 +64,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
 
-    implementation(libs.androidx.glance)
-    implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.material3)
+//    implementation(libs.androidx.glance)
+//    implementation(libs.androidx.glance.appwidget)
+//    implementation(libs.androidx.glance.material3)
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.savedstate)

@@ -6,7 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
-import com.karleinstein.basemvvm.navigation.TodoNavigation
+import com.karleinstein.basemvvm.navigation.TodoNavGraph
 
 
 class MainActivity : FragmentActivity() {
@@ -21,6 +21,6 @@ class MainActivity : FragmentActivity() {
     @Composable
     fun TodoApp() {
         val navController = rememberNavController()
-        TodoNavigation(navController = navController)
+        TodoNavGraph(navController = navController)
     }
 }
