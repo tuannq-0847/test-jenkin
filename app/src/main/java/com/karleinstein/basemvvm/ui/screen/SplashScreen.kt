@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.karleinstein.basemvvm.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -127,6 +128,7 @@ fun SplashScreen(
             },
             onClick = {
                 scope.launch {
+                    delay(50) // Add a small delay
                     onClickContinue()
                 }
             },
