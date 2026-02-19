@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -38,6 +37,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,6 +63,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import com.karleinstein.basemvvm.extension.toLocalDate
@@ -72,7 +76,9 @@ import com.karleinstein.basemvvm.viewmodel.TodoHomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Locale
 
@@ -105,6 +111,9 @@ fun AddTaskScreen(
     var selectedMinute by rememberSaveable { mutableIntStateOf(Calendar.getInstance().get(Calendar.MINUTE)) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDateMillis
     )
@@ -129,7 +138,9 @@ fun AddTaskScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+            snackbarScope.launch {
+                snackbarHostState.showSnackbar("Notification permission denied")
+            }
         }
     }
 
@@ -140,7 +151,9 @@ fun AddTaskScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(AlarmManager::class.java)
             if (!alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(context, "Exact alarm permission denied", Toast.LENGTH_SHORT).show()
+                snackbarScope.launch {
+                    snackbarHostState.showSnackbar("Exact alarm permission denied")
+                }
             }
         }
     }
@@ -190,12 +203,13 @@ fun AddTaskScreen(
 
             delay(500)
             isLoading = false
-            Toast.makeText(context, "Todo saved successfully ✅", Toast.LENGTH_SHORT).show()
+            snackbarHostState.showSnackbar("Todo saved successfully ✅")
             onPopBack()
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -331,7 +345,9 @@ fun AddTaskScreen(
                 Button(
                     onClick = {
                         if (title.isBlank()) {
-                            Toast.makeText(context, "Please enter a title", Toast.LENGTH_SHORT).show()
+                            snackbarScope.launch {
+                                snackbarHostState.showSnackbar("Please enter a title")
+                            }
                             return@Button
                         }
                         isLoading = true
@@ -415,53 +431,72 @@ fun DateTimePickerDialog(
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (showTimePicker) onConfirm()
-                    else showTimePicker = true
-                }
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text(if (showTimePicker) "Confirm" else "Next")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    if (showTimePicker) showTimePicker = false
-                    else onDismiss()
-                }
-            ) {
-                Text(if (showTimePicker) "Back" else "Cancel")
-            }
-        },
-        text = {
-            AnimatedContent(
-                targetState = showTimePicker,
-                label = "date_time_switch"
-            ) { isTimePicker ->
-                if (isTimePicker) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Select Time",
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        )
-                        TimePicker(state = timePickerState)
+                AnimatedContent(
+                    targetState = showTimePicker,
+                    label = "date_time_switch"
+                ) { isTimePicker ->
+                    if (isTimePicker) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Select Time",
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp)
+                            )
+                            TimePicker(state = timePickerState)
+                        }
+                    } else {
+                        DatePicker(state = datePickerState)
                     }
-                } else {
-                    DatePicker(state = datePickerState)
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = {
+                            if (showTimePicker) showTimePicker = false
+                            else onDismiss()
+                        }
+                    ) {
+                        Text(if (showTimePicker) "Back" else "Cancel")
+                    }
+                    TextButton(
+                        onClick = {
+                            if (showTimePicker) onConfirm()
+                            else showTimePicker = true
+                        }
+                    ) {
+                        Text(if (showTimePicker) "Confirm" else "Next")
+                    }
                 }
             }
         }
-    )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -515,6 +550,10 @@ fun AddTaskScreenPreview() {
             return flowOf(emptyList())
         }
 
+        override fun getOngoingTasks(localDate: LocalDate): Flow<List<Todo>> {
+            return flowOf(emptyList())
+        }
+
         override fun getAllTodosCompleted(): Flow<List<Todo>> {
             return flowOf(emptyList())
         }
@@ -525,6 +564,10 @@ fun AddTaskScreenPreview() {
 
         override fun insertTodo(todo: Todo): Flow<Unit> {
             return flowOf(Unit)
+        }
+
+        override fun getOverdueTasks(localDate: LocalDate): Flow<List<Todo>> {
+            return flowOf(emptyList())
         }
     }
     val mockViewModel = TodoHomeViewModel(

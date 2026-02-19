@@ -57,10 +57,9 @@ class TodoHomeViewModel(
         viewModelScope.launch {
             combine(
                 getTodoListUseCase.getAllTodosCompleted(),
-                getTodoListUseCase.getAllTodosOutgoing(),
-                getTodoListUseCase.getAllTodosOverDue()
+                getTodoListUseCase.getOngoingTasks(LocalDate.now()),
+                getTodoListUseCase.getOverdueTasks(LocalDate.now())
             ) { completed, outgoing, overdue ->
-
                 GroupedTodos(
                     completed = completed,
                     ongoing = outgoing,

@@ -28,7 +28,7 @@ fun TodoNavGraph(
         modifier = modifier,
         enterTransition = {
             slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
+                AnimatedContentTransitionScope.SlideDirection.Left,
                 animationSpec = tween(300)
             ) + fadeIn(animationSpec = tween(300))
         },
@@ -46,14 +46,20 @@ fun TodoNavGraph(
         },
         popExitTransition = {
             slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
+                AnimatedContentTransitionScope.SlideDirection.Right,
                 animationSpec = tween(300)
             )
         }
     )
     {
         composable(
-            route = TodoDestination.SPLASH_SCREEN
+            route = TodoDestination.SPLASH_SCREEN,
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300)
+                )
+            }
         ) { navBackStackEntry ->
             SplashRoute {
                 navController.navigate(TodoDestination.HOME_SCREEN) {

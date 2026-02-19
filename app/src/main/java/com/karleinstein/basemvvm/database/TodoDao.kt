@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.karleinstein.basemvvm.model.Todo
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 @Dao
 interface TodoDao {
@@ -16,6 +17,16 @@ interface TodoDao {
 
     @Query("SELECT * FROM todos WHERE state = 'IN_PROGRESS' ORDER BY dueDate DESC")
     fun getAllTodosOutgoing(): Flow<List<Todo>>
+
+    @Query(
+        """
+        SELECT * FROM todos
+        WHERE state = 'IN_PROGRESS'
+        AND (dueDate IS NULL OR dueDate >= :localDate)
+        ORDER BY dueDate DESC
+        """
+    )
+    fun getOngoingTasks(localDate: LocalDate): Flow<List<Todo>>
 
     @Query("SELECT * FROM todos WHERE state = 'DONE' ORDER BY dueDate DESC")
     fun getAllTodosCompleted(): Flow<List<Todo>>
@@ -34,4 +45,10 @@ interface TodoDao {
 
     @Query("DELETE FROM todos")
     suspend fun deleteAll()
+    @Query("""
+    SELECT * FROM todos 
+    WHERE state = 'IN_PROGRESS' 
+    AND dueDate < :localDate
+""")
+    fun getOverdueTasks(localDate: LocalDate): Flow<List<Todo>>
 }
