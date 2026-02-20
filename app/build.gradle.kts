@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("org.jetbrains.kotlinx.kover")
 }
 
 android {
@@ -36,6 +37,23 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+kover {
+    // Keep extension applied (required for tasks), but configure reports via koverReport DSL below.
+}
+
+koverReport {
+    defaults {
+        xml {
+            onCheck = (true)
+        }
+    }
+    filters {
+        includes {
+            classes(".*ViewModel")
+        }
     }
 }
 
@@ -91,6 +109,12 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.accompanist.permissions)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    androidTestImplementation(libs.mockk.android)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.core)
