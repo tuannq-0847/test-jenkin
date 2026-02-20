@@ -11,18 +11,18 @@ pipeline {
         )
         booleanParam(
             name: 'RUN_SONARQUBE',
-            defaultValue: false,
-            description: 'Run SonarQube analysis'
+            defaultValue: true,
+            description: 'Run SonarCloud analysis'
         )
         booleanParam(
             name: 'BUILD_DEBUG_APK',
-            defaultValue: true,
-            description: 'Build Debug APK (assembleDebug)'
+            defaultValue: false,
+            description: 'Build Debug APK'
         )
         booleanParam(
             name: 'WAIT_FOR_QUALITY_GATE',
-            defaultValue: false,
-            description: 'Wait for SonarQube Quality Gate (requires webhook configuration)'
+            defaultValue: true,
+            description: 'Wait for SonarCloud Quality Gate'
         )
     }
 
@@ -34,9 +34,9 @@ pipeline {
         ANDROID_HOME = "/Users/karl/Library/Android/sdk"
         PATH = "${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest/bin:${env.PATH}"
 
-        // Jenkins global config: Manage Jenkins -> Configure System -> SonarQube servers
-        // Use the exact SonarQube server name below.
         SONARQUBE_SERVER = 'SonarQube'
+        SONAR_PROJECT_KEY = 'tuannq-0847_test-jenkin'
+        SONAR_HOST_URL = 'https://sonarcloud.io'
     }
 
     stages {
@@ -74,7 +74,9 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/*.apk', fingerprint: true, allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/*.apk',
+                            fingerprint: true,
+                            allowEmptyArchive: true
                 }
             }
         }
@@ -85,13 +87,13 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarCloud Analysis') {
             when {
                 expression { return params.RUN_SONARQUBE }
             }
             steps {
-                withSonarQubeEnv(env.SONARQUBE_SERVER) {
-                    sh './gradlew sonarqube --no-daemon'
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh './gradlew sonar --no-daemon'
                 }
             }
         }
@@ -105,9 +107,32 @@ pipeline {
             }
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    script {
+                        def qg = waitForQualityGate()
+
+                        echo "=============================="
+                        echo "Quality Gate Status: ${qg.status}"
+                        echo "Sonar Dashboard:"
+                        echo "${SONAR_HOST_URL}/dashboard?id=${SONAR_PROJECT_KEY}"
+                        echo "Sonar Issues:"
+                        echo "${SONAR_HOST_URL}/project/issues?id=${SONAR_PROJECT_KEY}"
+                        echo "=============================="
+
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to Quality Gate failure: ${qg.status}"
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo "Build Failed ❌"
+        }
+        success {
+            echo "Build Successful ✅"
         }
     }
 }
