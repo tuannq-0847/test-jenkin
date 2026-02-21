@@ -41,18 +41,16 @@ android {
 }
 
 kover {
-    // Keep extension applied (required for tasks), but configure reports via koverReport DSL below.
-}
-
-koverReport {
-    defaults {
-        xml {
-            onCheck = (true)
-        }
-    }
-    filters {
-        includes {
-            classes(".*ViewModel")
+    reports {
+        total {
+            filters {
+                includes {
+                    classes(".*ViewModel")
+                }
+            }
+            xml {
+                onCheck = true
+            }
         }
     }
 }
